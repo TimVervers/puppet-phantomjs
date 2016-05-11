@@ -1,11 +1,11 @@
 # Base class for phantomjs module
 class phantomjs (
-  $package_version = '1.9.7',
-  $source_url = undef,
-  $source_dir = '/opt',
-  $install_dir = '/usr/local/bin',
-  $package_update = false,
-  $timeout = 300
+  $install_dir      = '/usr/local/bin',
+  $package_update   = false,
+  $package_version  = '2.1.1',
+  $source_dir       = '/opt',
+  $source_url       = undef,
+  $timeout          = 300,
 ) {
 
   # Base requirements
@@ -13,15 +13,13 @@ class phantomjs (
     fail('This module is supported only on Linux.')
   }
 
-  ensure_packages('curl')
-  ensure_packages('bzip2')
+  ensure_packages(['curl','bzip2'])
 
   # Ensure packages based on operating system exist
   case $::operatingsystem {
     /(?:CentOS|RedHat|Amazon|Scientific)/: {
       # Requirements for CentOS/RHEL according to phantomjs.org
-      ensure_packages('fontconfig')
-      ensure_packages('freetype')
+      ensure_packages(['fontconfig','freetype'])
 
       if $::operatingsystem == 'Amazon' {
         $libstdc_package = 'compat-libstdc++-33'
@@ -29,8 +27,7 @@ class phantomjs (
         $libstdc_package = 'libstdc++'
       }
 
-      ensure_packages($libstdc_package)
-      ensure_packages('urw-fonts')
+      ensure_packages([$libstdc_package, 'urw-fonts'])
 
       $packages = [
         Package['curl'],
@@ -62,7 +59,7 @@ class phantomjs (
       && tar --extract --file=${source_dir}/phantomjs.tar.bz2 --strip-components=1 --directory=${source_dir}/phantomjs",
     creates => "${source_dir}/phantomjs/",
     require => $packages,
-    timeout => $timeout
+    timeout => $timeout,
   }
 
   file { "${install_dir}/phantomjs":
@@ -74,7 +71,7 @@ class phantomjs (
   if $package_update {
     exec { 'remove phantomjs':
       command => "/bin/rm -rf ${source_dir}/phantomjs",
-      notify  => Exec[ 'get phantomjs' ]
+      notify  => Exec[ 'get phantomjs' ],
     }
   }
 }
